@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BlixBloxCatz</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="images/icon_512_cat.png">
+<link rel="apple-touch-icon" href="images/icon_512_cat.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BlixBloxCatz">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0420">
+<style>
+  :root{
+    --panel: rgba(20, 10, 45, 0.55);
+    --panel-border: rgba(255,255,255,0.18);
+  }
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select:none; }
+  html,body{
+    margin:0; padding:0; width:100%; height:100%;
+    background:#0a0420;
+    font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+    overflow:hidden;
+    overscroll-behavior:none;
+  }
+  #app{
+    position:relative;
+    width:100%;
+    height:100%;
+    max-width:520px;
+    margin:0 auto;
+    overflow:hidden;
+    background:#0a0420;
+  }
+  #bg{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit:cover;
+    z-index:0;
+  }
+  .screen{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    z-index:5;
+    opacity:1;
+    transition:opacity .35s ease;
+  }
+  .screen.hidden{ opacity:0; pointer-events:none; }
+
+  /* ---------- Loading Screen ---------- */
+  #loadingScreen{
+    background:#c9bc9f;
+    z-index:50;
+  }
+  #loadingScreen img#loadingBg{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  }
+  #loadCatWrap{
+    position:absolute;
+    left:50%; top:38.5%;
+    transform:translate(-50%,-50%);
+    width:22%;
+    z-index:2;
+    animation: catBob 1.1s ease-in-out infinite;
+  }
+  #loadCatWrap img{ width:100%; display:block; }
+  @keyframes catBob{
+    0%,100%{ transform:translate(-50%,-50%) rotate(-2deg) translateY(0); }
+    50%{ transform:translate(-50%,-50%) rotate(2deg) translateY(-6%); }
+  }
+  #loadBarFill{
+    position:absolute;
+    left:18.5%; top:48.6%;
+    width:0%;
+    max-width:63%;
+    height:6.2%;
+    background: repeating-linear-gradient(45deg, #ff8fc7, #ff8fc7 10px, #ffb6de 10px, #ffb6de 20px);
+    border-radius:20px;
+    z-index:1;
+    transition: width .25s ease;
+    box-shadow: 0 0 12px rgba(255,140,200,0.8);
+  }
+  #loadLabel{
+    position:absolute;
+    left:50%; top:57%;
+    transform:translateX(-50%);
+    color:#4a3d2a;
+    font-weight:bold;
+    letter-spacing:1px;
+    font-size:15px;
+    text-shadow:0 1px 0 rgba(255,255,255,0.4);
+  }
+  #loadTitle{
+    position:absolute;
+    top:7%; left:50%; transform:translateX(-50%);
+    width:92%; max-width:500px;
+    z-index:3;
+  }
+  #loadTitle img{ width:100%; height:auto; display:block; }
+
+  /* ---------- Menu Screen ---------- */
+  #menuScreen{ z-index:10; }
+  #menuTitleWrap{
+    text-align:center;
+    margin-top:6%;
+  }
+  #menuLogo{
+    width:82%; max-width:430px;
+    display:block; margin:0 auto;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35));
+  }
+  #menuTitleWrap p{
+    color:#ffe2fa;
+    margin:6px 0 0;
+    font-size:14px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    opacity:0.85;
+  }
+  #menuMascot{
+    width:46%;
+    max-width:230px;
+    margin: 4% 0 2%;
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,0.45));
+    animation: floaty 2.6s ease-in-out infinite;
+  }
+  @keyframes floaty{
+    0%,100%{ transform:translateY(0) rotate(-1.5deg);}
+    50%{ transform:translateY(-14px) rotate(1.5deg);}
+  }
+  .menuBtn{
+    width:58%; max-width:270px;
+    cursor:pointer;
+    margin:3% 0;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.4));
+    transition: transform .12s ease;
+  }
+  .menuBtn:active{ transform:scale(0.93); }
+  #playBtn{ width:64%; max-width:300px; }
+  .smallRow{
+    display:flex; gap:14px; margin-top:2%;
+  }
+  .smallRow img{ width:130px; }
+  #muteToggle{
+    position:absolute; top:16px; right:16px;
+    width:42px; height:42px;
+    border-radius:50%;
+    background:var(--panel);
+    border:2px solid var(--panel-border);
+    color:#fff; font-size:18px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; z-index:60;
+  }
+
+  /* ---------- Game Screen ---------- */
+  #gameScreen{ z-index:10; justify-content:flex-start; }
+  #topBar{
+    width:100%;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 12px 4px;
+    z-index:20;
+  }
+  .pill{
+    background:var(--panel);
+    border:2px solid var(--panel-border);
+    border-radius:20px;
+    padding:5px 12px;
+    display:flex; align-items:center; gap:6px;
+    color:#fff; font-weight:bold; font-size:14px;
+    backdrop-filter: blur(3px);
+  }
+  .pill img{ width:22px; height:22px; object-fit:contain; }
+  #backBtn{
+    width:34px;height:34px;border-radius:50%;
+    background:var(--panel); border:2px solid var(--panel-border);
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:16px; cursor:pointer;
+  }
+  #scoreWrap{
+    width:92%;
+    margin:6px auto 2px;
+    z-index:20;
+  }
+  #targetBarOuter{
+    background:rgba(0,0,0,0.35);
+    border:2px solid var(--panel-border);
+    border-radius:14px;
+    height:20px;
+    width:100%;
+    overflow:hidden;
+    position:relative;
+  }
+  #targetBarFill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,#ff9ad5,#a78bfa,#7ee8fa);
+    transition:width .4s ease;
+  }
+  #targetBarLabel{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:#fff; font-weight:bold; text-shadow:0 1px 2px rgba(0,0,0,0.6);
+  }
+  #movesRow{
+    display:flex; justify-content:space-between; align-items:center;
+    width:92%; margin:6px auto 2px; color:#fff; font-size:12px; font-weight:bold;
+    z-index:20;
+  }
+  #boardWrap{
+    flex:1;
+    width:100%;
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+    z-index:15;
+  }
+  #boardFrame{
+    background:rgba(10,4,30,0.35);
+    border:3px solid rgba(255,255,255,0.25);
+    border-radius:18px;
+    padding:8px;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.35), 0 10px 30px rgba(0,0,0,0.4);
+  }
+  #board{ display:block; touch-action:none; }
+
+  #mascotCorner{
+    position:absolute;
+    left:6px; bottom:6px;
+    width:22%; max-width:110px;
+    z-index:25;
+    pointer-events:none;
+    filter: drop-shadow(0 6px 8px rgba(0,0,0,0.4));
+    transition: transform .15s ease;
+  }
+
+  #fxLayer{
+    position:absolute; inset:0;
+    pointer-events:none;
+    z-index:30;
+    overflow:hidden;
+  }
+  .comboPop{
+    position:absolute;
+    width:150px;
+    left:50%; top:36%;
+    transform:translate(-50%,-50%) scale(0.4);
+    opacity:0;
+    animation: comboPop .9s cubic-bezier(.2,1.4,.4,1) forwards;
+  }
+  @keyframes comboPop{
+    0%{ opacity:0; transform:translate(-50%,-50%) scale(0.3) rotate(-8deg); }
+    18%{ opacity:1; transform:translate(-50%,-50%) scale(1.15) rotate(3deg); }
+    30%{ transform:translate(-50%,-50%) scale(1) rotate(0deg); }
+    75%{ opacity:1; }
+    100%{ opacity:0; transform:translate(-50%,-60%) scale(0.9) rotate(0deg); }
+  }
+  .floatScore{
+    position:absolute;
+    color:#fff; font-weight:900; font-size:16px;
+    text-shadow: 0 0 6px rgba(255,180,240,0.9), 1px 1px 0 rgba(0,0,0,0.5);
+    animation: floatUp 0.85s ease-out forwards;
+  }
+  @keyframes floatUp{
+    0%{ opacity:1; transform:translateY(0); }
+    100%{ opacity:0; transform:translateY(-46px); }
+  }
+
+  /* ---------- Overlay modal (win/lose) ---------- */
+  #modalOverlay{
+    position:absolute; inset:0;
+    background:rgba(5,2,20,0.72);
+    z-index:80;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    transition:opacity .3s ease;
+  }
+  #modalOverlay.show{ opacity:1; pointer-events:auto; }
+  #modalCard{
+    width:82%; max-width:340px;
+    background: linear-gradient(160deg, #2c1a55, #170a35);
+    border:3px solid rgba(255,255,255,0.25);
+    border-radius:22px;
+    padding:18px 18px 22px;
+    text-align:center;
+    box-shadow:0 20px 50px rgba(0,0,0,0.6);
+    transform:translateY(20px) scale(0.92);
+    transition:transform .35s cubic-bezier(.2,1.4,.4,1);
+  }
+  #modalOverlay.show #modalCard{ transform:translateY(0) scale(1); }
+  #modalMascot{ width:150px; margin-top:-58px; filter:drop-shadow(0 8px 10px rgba(0,0,0,0.5)); }
+  #modalBanner{ width:80%; max-width:230px; margin:2px auto 6px; }
+  #modalStars{ display:flex; justify-content:center; gap:6px; margin:8px 0; }
+  #modalStars img{ width:38px; opacity:0.25; transform:scale(0.7); transition:all .3s ease; }
+  #modalStars img.lit{ opacity:1; transform:scale(1); }
+  #modalScoreText{ color:#fff; font-size:14px; margin:4px 0 14px; opacity:0.9; }
+  #modalBtn{ width:60%; max-width:190px; cursor:pointer; }
+  #modalSecondary{
+    display:block; margin:10px auto 0; color:#cbb8ff; font-size:13px;
+    text-decoration:underline; cursor:pointer; background:none; border:none;
+  }
+  #sparkleCanvasWrap canvas{ position:absolute; inset:0; }
+
+  #supportBtn{
+    position:fixed;
+    top:16px;
+    left:16px;
+    z-index:1000;
+    padding:10px 14px;
+    border-radius:18px;
+    border:2px solid rgba(255,255,255,.34);
+    background:rgba(43,27,69,.96);
+    color:#fff;
+    font-weight:bold;
+    font-size:12px;
+    cursor:pointer;
+    box-shadow:0 5px 12px rgba(0,0,0,.25);
+    white-space:nowrap;
+  }
+  #supportBtn:active{transform:scale(.96);}
+  @media (max-width:420px){
+    #supportBtn{top:12px;left:12px;padding:9px 12px;font-size:11px;}
+  }
+  #donationOverlay{
+    position:absolute; inset:0; z-index:95;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(5,2,20,.78);
+    opacity:0; pointer-events:none; transition:opacity .25s ease;
+    padding:18px;
+  }
+  #donationOverlay.show{opacity:1;pointer-events:auto;}
+  #donationCard{
+    width:88%; max-width:360px; max-height:92%; overflow:auto;
+    background:#fff; color:#333; border-radius:22px; padding:18px;
+    text-align:center; box-shadow:0 20px 50px rgba(0,0,0,.55);
+  }
+  #donationCard h2{margin:2px 0 6px;font-size:21px;color:#2b1b45;}
+  #donationCard p{margin:5px 0 12px;font-size:13px;color:#555;}
+  #donationQR{width:min(100%,300px);height:auto;display:block;margin:0 auto 10px;border-radius:10px;}
+  #donationClose{padding:9px 22px;border:0;border-radius:18px;background:#2b1b45;color:#fff;font-weight:bold;cursor:pointer;}
+
+  #adBanner{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);width:min(320px,92%);min-height:50px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.92);border-radius:10px;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.12);font-size:10px;color:#777;pointer-events:none;}
+  #adBanner span{opacity:.7;}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ LOADING SCREEN ============ -->
+  <div id="loadingScreen" class="screen">
+    <img id="loadingBg" src="images/loading_cat.png" alt="">
+    <div id="loadTitle"><img src="images/blixbloxcatz_logo.png" alt="BlixBloxCatz"></div>
+    <div id="loadCatWrap" style="display:none"></div>
+    <div id="loadBarFill"></div>
+    <div id="loadLabel">Loading… 0%</div>
+  </div>
+
+  <!-- ============ MENU SCREEN ============ -->
+  <div id="menuScreen" class="screen hidden">
+    <img id="bg" src="images/background_cat.png" alt="">
+    <button id="muteToggle">🔊</button>
+    <div id="menuTitleWrap">
+      <img id="menuLogo" src="images/blixbloxcatz_logo.png" alt="BlixBloxCatz">
+      <p>a cozy cat puzzle</p>
+    </div>
+    <img id="menuMascot" src="images/mascot_happy.png" alt="">
+    <img id="playBtn" class="menuBtn" src="images/btn_play_cat.png" alt="Play">
+    <button id="supportBtn" type="button">Support the Developer</button>
+  </div>
+
+  <!-- ============ GAME SCREEN ============ -->
+  <div id="gameScreen" class="screen hidden">
+    <img id="bg2" class="bgcover" src="images/background_cat.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;">
+    <div id="topBar">
+      <div id="backBtn">✕</div>
+      <div class="pill" id="scorePill">⭐ <span id="scoreVal">0</span></div>
+    </div>
+    <div id="scoreWrap">
+      <div id="targetBarOuter">
+        <div id="targetBarFill"></div>
+        <div id="targetBarLabel"><span id="targetLabelText">0 / 500</span></div>
+      </div>
+    </div>
+    <div id="movesRow">
+      <span>Level <span id="levelVal">1</span></span>
+      <span><img src="images/paw_icon.png" style="width:16px;vertical-align:-3px;"> Moves: <span id="movesVal">20</span></span>
+    </div>
+    <div id="boardWrap">
+      <div id="boardFrame"><canvas id="board"></canvas></div>
+      <img id="mascotCorner" src="images/mascot_happy.png" alt="">
+      <div id="fxLayer"></div>
+    </div>
+    <div id="adBanner" aria-label="Advertisement">
+      <span>Advertisement</span>
+      <!-- Approved banner ad code will be inserted here after the ad-network account is approved. -->
+    </div>
+  </div>
+
+  <!-- ============ DONATION QR ============ -->
+  <div id="donationOverlay">
+    <div id="donationCard">
+      <h2>Support BlixBloxCatz</h2>
+      <p>If you enjoy the game, you can support the developer directly via UPI.</p>
+      <img id="donationQR" src="images/donation_qr.png" alt="UPI donation QR code">
+      <p>UPI ID: lw605040@okaxis</p>
+      <button id="donationClose" type="button">Close</button>
+    </div>
+  </div>
+
+  <!-- ============ WIN / LOSE MODAL ============ -->
+  <div id="modalOverlay">
+    <div id="modalCard">
+      <img id="modalMascot" src="images/mascot_victory.png" alt="">
+      <img id="modalBanner" src="images/text_purrfect.png" alt="">
+      <div id="modalStars">
+        <img src="images/star_cat.png" id="star1">
+        <img src="images/star_cat.png" id="star2">
+        <img src="images/star_cat.png" id="star3">
+      </div>
+      <div id="modalScoreText">Score: 0</div>
+      <img id="modalBtn" src="images/btn_play_cat.png" alt="Continue">
+      <button id="modalSecondary">Back to menu</button>
+    </div>
+  </div>
+
+
+</div>
+
+<!-- ============ AUDIO ============ -->
+<audio id="sndBgm" src="sounds/sfx_bgm.mp3" loop preload="auto"></audio>
+<audio id="sndPop" src="sounds/sfx_pop.mp3" preload="auto"></audio>
+<audio id="sndClear" src="sounds/sfx_clear.mp3" preload="auto"></audio>
+<audio id="sndSwipe" src="sounds/sfx_swipe.mp3" preload="auto"></audio>
+<audio id="sndClick" src="sounds/sfx_click.mp3" preload="auto"></audio>
+<audio id="sndError" src="sounds/sfx_error.mp3" preload="auto"></audio>
+<audio id="sndExplosion" src="sounds/sfx_explosion.mp3" preload="auto"></audio>
+<audio id="sndMeowHappy" src="sounds/sfx_meow_happy.mp3" preload="auto"></audio>
+<audio id="sndMeowAmazed" src="sounds/sfx_meow_amazed.mp3" preload="auto"></audio>
+<audio id="sndYowlEpic" src="sounds/sfx_yowl_epic.mp3" preload="auto"></audio>
+
+<script src="game.js"></script>
+</body>
+</html>

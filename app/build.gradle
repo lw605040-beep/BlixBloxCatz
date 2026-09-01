@@ -1,0 +1,32 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.blixbloxcatz.app'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.blixbloxcatz.app'
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+    }
+
+    buildTypes {
+        debug {
+            buildConfigField 'boolean', 'USE_TEST_ADS', 'true'
+        }
+        release {
+            minifyEnabled false
+            buildConfigField 'boolean', 'USE_TEST_ADS', 'false'
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.webkit:webkit:1.14.0'
+    implementation 'com.google.android.gms:play-services-ads:25.4.0'
+}
