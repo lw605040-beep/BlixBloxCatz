@@ -5,9 +5,11 @@ plugins {
 android {
     namespace 'com.blixbloxcatz.app'
     compileSdk 35
+
     buildFeatures {
         buildConfig true
     }
+
     defaultConfig {
         applicationId 'com.blixbloxcatz.app'
         minSdk 24
@@ -16,12 +18,23 @@ android {
         versionName '1.0'
     }
 
+    signingConfigs {
+        release {
+            storeFile file('../blixbloxcatz-release.jks')
+            storePassword '#43pfn0fy8j#'
+            keyAlias 'blixbloxcatz'
+            keyPassword '#43pfn0fy8j#'
+        }
+    }
+
     buildTypes {
         debug {
             buildConfigField 'boolean', 'USE_TEST_ADS', 'true'
         }
+
         release {
             minifyEnabled false
+            signingConfig signingConfigs.release
             buildConfigField 'boolean', 'USE_TEST_ADS', 'false'
         }
     }
