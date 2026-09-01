@@ -5,7 +5,9 @@ plugins {
 android {
     namespace 'com.blixbloxcatz.app'
     compileSdk 35
-
+    buildFeatures {
+        buildConfig true
+    }
     defaultConfig {
         applicationId 'com.blixbloxcatz.app'
         minSdk 24
