@@ -29,10 +29,18 @@ jobs:
           ROOT=$(find extracted -mindepth 1 -maxdepth 1 -type d | head -n 1)
 
           if [ -n "$ROOT" ]; then
-            cp -a "$ROOT"/. .
-          else
-            cp -a extracted/. .
-          fi
+            cp -a "$ROOT"/app .
+            cp -a "$ROOT"/build.gradle .
+            cp -a "$ROOT"/gradle.properties .
+            cp -a "$ROOT"/settings.gradle .
+            cp -a "$ROOT"/README.md .
+         else
+            cp -a extracted/app .
+            cp -a extracted/build.gradle .
+            cp -a extracted/gradle.properties .
+            cp -a extracted/settings.gradle .
+            cp -a extracted/README.md .
+         fi
 
           rm -rf extracted
           rm -f "$ZIP_FILE"
